@@ -1,0 +1,42 @@
+apiVersion: kermit.io/v1alpha1
+kind: AgentFleet
+metadata:
+  name: analyst-army-gold
+spec:
+  replicas: 3 # Nombre d'agents "chauds" prêts à travailler
+  selector:
+    matchLabels:
+      speciality: "financial-analysis"
+  
+  # Stratégie de mise à jour (ex: changer de modèle sans interruption)
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Template de l'agent (réutilise la structure de la CRD Agent)
+  template:
+    spec:
+      role: "analyst"
+      intelligence:
+        primaryModel: "mistral-large-local"
+        fallbackModel: "claude-3-sonnet"
+      sandbox:
+        runtimeClassName: "kata-qemu"
+        sharedWorkspace: "shared-data-lake"
+      mesh:
+        tools:
+          - name: "yfinance-api"
+          - name: "excel-generator"
+
+  # Autoscaling basé sur la file d'attente de tâches (KEDA)
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    metrics:
+      - type: Prometheus
+        metadata:
+          query: "sum(kermit_task_queue_depth{fleet='analyst-army-gold'})"
+          threshold: "10" # Crée un nouvel agent tous les 10 messages en attente

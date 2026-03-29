@@ -1,0 +1,58 @@
+apiVersion: kermit.io/v1alpha1
+kind: Agent
+metadata:
+  name: research-agent-fr
+  namespace: kermit-fleet
+  labels:
+    modelType: LLM
+    agentType: unit
+spec:
+  # --- 1. Identity & Role ---
+  role: "researcher"
+  description: "An agent specialized in web searching and synthesis"
+  agentType: "unit" # | "sequential" | "loop" | "paralel" | "cron"
+
+  # --- 2. FrogFort (Sandbox & Isolation) ---
+  sandbox:
+    runtimeClassName: "kata-clh" # Utilise Cloud Hypervisor pour la micro-VM
+    resources:
+      cpu: "1"
+      memory: "2Gi"
+    storage:
+      sharedWorkspace: "workspace-project-x" # Nom du PVC JuiceFS/MinIO
+      ephemeralLimit: "500Mi"
+    security:
+      allowInternet: true
+      egressAllowList: 
+        - "*.wikipedia.org"
+        - "*.arxiv.org"
+      sensitiveDataFiltering: true # Active le sidecar Envoy/Wasm DLP
+
+  # --- 3. Kermit Brains (Inference Strategy) ---
+  intelligence:
+    prompt: "You are an experienced researcher ..."
+    primaryModel: "llama3-70b-local"
+    fallbackModel: "gpt-4o"
+    temperature: 0.7
+    maxTokens: 4096
+    priority: "performance" # | "cost" | "performance" | "privacy"
+
+  # --- 4. Agentic Mesh (Collaboration & Tools) ---
+  mesh:
+    communicationProtocols: ["mcp", "a2a"]
+    tools:
+      - name: "google-search"
+        connectorRef: "serper-api-key"
+      - name: "python-interpreter"
+        image: "kermit/python-runtime:latest" # Sandboxé aussi !
+    collaboration:
+      canInitiateWorkflow: true
+      canBeSubtasked: true
+
+status:
+  phase: "Running" # Pending, Running, Failed
+  brainAddress: "http://kermit-gateway.svc:8080/v1"
+  uptime: "2d12h"
+  tokenConsumption:
+    total: 15420
+    costEstimate: "0.12$"
