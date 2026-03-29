@@ -8,6 +8,7 @@ This project aims at craeting an application for deploying fleets of AI agents l
 
 Being a kubrenetes app, we are using all kubernetes concept to harden sandboxes in pods, and make this application deployables on-prem or on any cloud and be scalable.
 
+~~~ bash
 kermit-kernel/
 ├── api/                    # Définitions des CRDs (YAML & Go structs)
 │   ├── v1alpha1/           # Versions des APIs (Agent, AgentFleet, Gateway)
@@ -33,6 +34,7 @@ kermit-kernel/
 │   └── sidecar-envoy/      # Image avec filtres Wasm pré-installés
 ├── pkg/                    # Bibliothèques réutilisables (SDK pour agents)
 └── ui/                     # Kermit Dashboard (Next.js)
+~~~
 
 ## KermitKernel (kAIs) resources
 
